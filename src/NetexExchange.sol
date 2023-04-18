@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -9,7 +9,7 @@ import {ICurrencyManager} from "./interfaces/ICurrencyManager.sol";
 import {IExecutionManager} from "./interfaces/IExecutionManager.sol";
 import {IExecutionStrategy} from "./interfaces/IExecutionStrategy.sol";
 import {IRoyaltyFeeManager} from "./interfaces/IRoyaltyFeeManager.sol";
-import {ILooksRareExchange} from "./interfaces/ILooksRareExchange.sol";
+import {INetexExchange} from "./interfaces/INetexExchange.sol";
 import {ITransferManagerNFT} from "./interfaces/ITransferManagerNFT.sol";
 import {ITransferSelectorNFT} from "./interfaces/ITransferSelectorNFT.sol";
 import {IWETH} from "./interfaces/IWETH.sol";
@@ -17,7 +17,7 @@ import {IWETH} from "./interfaces/IWETH.sol";
 import {OrderTypes} from "./libraries/OrderTypes.sol";
 import {SignatureChecker} from "./libraries/SignatureChecker.sol";
 
-contract LooksRareExchange is ILooksRareExchange, ReentrancyGuard, Ownable {
+contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     using OrderTypes for OrderTypes.MakerOrder;
@@ -97,7 +97,7 @@ contract LooksRareExchange is ILooksRareExchange, ReentrancyGuard, Ownable {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
-                0xda9101ba92939daf4bb2e18cd5f942363b9297fbc3232c9dd964abb1fb70ed71, // keccak256("LooksRareExchange")
+                0xceb305597ad05755de545c066f1bf0d269b0d0955bf11787ae1a284c0ad3b723, // keccak256("NetexExchange")
                 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6, // keccak256(bytes("1")) for versionId = 1
                 block.chainid,
                 address(this)
@@ -123,16 +123,34 @@ contract LooksRareExchange is ILooksRareExchange, ReentrancyGuard, Ownable {
         emit CancelAllOrders(msg.sender, minNonce);
     }
 
-    /**
-     * @notice Cancel maker orders
-     * @param orderNonces array of order nonces
-     */
+    // /**
+    //  * @notice Cancel maker orders
+    //  * @param orderNonces array of order nonces
+    //  */
+    // function cancelMultipleMakerOrders(uint256[] calldata orderNonces) external {
+    //     require(orderNonces.length > 0, "Cancel: Cannot be empty");
+
+    //     for (uint256 i = 0; i < orderNonces.length; i++) {
+    //         require(orderNonces[i] >= userMinOrderNonce[msg.sender], "Cancel: Order nonce lower than current");
+    //         _isUserOrderNonceExecutedOrCancelled[msg.sender][orderNonces[i]] = true;
+    //     }
+
+    //     emit CancelMultipleOrders(msg.sender, orderNonces);
+    // }
+
+// | cancelMultipleMakerOrders                    | 50362           | 50362 | 50362  | 50362  | 1       |
+// | cancelMultipleMakerOrders                    | 50205           | 50205 | 50205  | 50205  | 1       |    
+// | cancelMultipleMakerOrders                    | 50200           | 50200  | 50200  | 50200  | 1
+    // TODO: test this
     function cancelMultipleMakerOrders(uint256[] calldata orderNonces) external {
         require(orderNonces.length > 0, "Cancel: Cannot be empty");
 
-        for (uint256 i = 0; i < orderNonces.length; i++) {
+        for (uint256 i; i < orderNonces.length;) {
             require(orderNonces[i] >= userMinOrderNonce[msg.sender], "Cancel: Order nonce lower than current");
             _isUserOrderNonceExecutedOrCancelled[msg.sender][orderNonces[i]] = true;
+            unchecked {                
+                ++i;
+            }
         }
 
         emit CancelMultipleOrders(msg.sender, orderNonces);
