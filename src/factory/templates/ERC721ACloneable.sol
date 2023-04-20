@@ -6,6 +6,8 @@ pragma solidity ^0.8.4;
 
 import { IERC721A } from "../../interfaces/IERC721A.sol";
 
+import { Initializable } from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
+
 /**
  * @dev Interface of ERC721 token receiver.
  */
@@ -33,7 +35,7 @@ interface ERC721A__IERC721Receiver {
  * - An owner cannot have more than 2**64 - 1 (max value of uint64) of supply.
  * - The maximum token ID cannot exceed 2**256 - 1 (max value of uint256).
  */
-contract ERC721ACloneable is IERC721A {
+contract ERC721ACloneable is IERC721A, Initializable {
     // Bypass for a `--via-ir` bug (https://github.com/chiru-labs/ERC721A/pull/364).
     struct TokenApprovalRef {
         address value;
@@ -137,10 +139,10 @@ contract ERC721ACloneable is IERC721A {
     //                          CONSTRUCTOR
     // =============================================================
 
-    function initialize(
+    function __ERC721ACloneable__init(
         string memory name_,
         string memory symbol_
-    ) internal {
+    ) internal onlyInitializing {
         _name = name_;
         _symbol = symbol_;
         _currentIndex = _startTokenId();
@@ -203,13 +205,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Returns the number of tokens in `owner`'s account.
      */
-    function balanceOf(address owner)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function balanceOf(
+        address owner
+    ) public view virtual override returns (uint256) {
         if (owner == address(0)) revert BalanceQueryForZeroAddress();
         return _packedAddressData[owner] & _BITMASK_ADDRESS_DATA_ENTRY;
     }
@@ -268,13 +266,9 @@ contract ERC721ACloneable is IERC721A {
      *
      * This function call must use less than 30000 gas.
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         // The interface IDs are constants representing the first 4 bytes
         // of the XOR of all function selectors in the interface.
         // See: [ERC165](https://eips.ethereum.org/EIPS/eip-165)
@@ -306,13 +300,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
 
         string memory baseURI = _baseURI();
@@ -342,13 +332,9 @@ contract ERC721ACloneable is IERC721A {
      *
      * - `tokenId` must exist.
      */
-    function ownerOf(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function ownerOf(
+        uint256 tokenId
+    ) public view virtual override returns (address) {
         return address(uint160(_packedOwnershipOf(tokenId)));
     }
 
@@ -356,24 +342,18 @@ contract ERC721ACloneable is IERC721A {
      * @dev Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around over time.
      */
-    function _ownershipOf(uint256 tokenId)
-        internal
-        view
-        virtual
-        returns (TokenOwnership memory)
-    {
+    function _ownershipOf(
+        uint256 tokenId
+    ) internal view virtual returns (TokenOwnership memory) {
         return _unpackedOwnership(_packedOwnershipOf(tokenId));
     }
 
     /**
      * @dev Returns the unpacked `TokenOwnership` struct at `index`.
      */
-    function _ownershipAt(uint256 index)
-        internal
-        view
-        virtual
-        returns (TokenOwnership memory)
-    {
+    function _ownershipAt(
+        uint256 index
+    ) internal view virtual returns (TokenOwnership memory) {
         return _unpackedOwnership(_packedOwnerships[index]);
     }
 
@@ -389,11 +369,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * Returns the packed ownership data of `tokenId`.
      */
-    function _packedOwnershipOf(uint256 tokenId)
-        private
-        view
-        returns (uint256)
-    {
+    function _packedOwnershipOf(
+        uint256 tokenId
+    ) private view returns (uint256) {
         uint256 curr = tokenId;
 
         unchecked {
@@ -425,11 +403,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Returns the unpacked `TokenOwnership` struct from `packed`.
      */
-    function _unpackedOwnership(uint256 packed)
-        private
-        pure
-        returns (TokenOwnership memory ownership)
-    {
+    function _unpackedOwnership(
+        uint256 packed
+    ) private pure returns (TokenOwnership memory ownership) {
         ownership.addr = address(uint160(packed));
         ownership.startTimestamp = uint64(packed >> _BITPOS_START_TIMESTAMP);
         ownership.burned = packed & _BITMASK_BURNED != 0;
@@ -439,11 +415,10 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Packs ownership data into a single uint256.
      */
-    function _packOwnershipData(address owner, uint256 flags)
-        private
-        view
-        returns (uint256 result)
-    {
+    function _packOwnershipData(
+        address owner,
+        uint256 flags
+    ) private view returns (uint256 result) {
         assembly {
             // Mask `owner` to the lower 160 bits, in case the upper bits somehow aren't clean.
             owner := and(owner, _BITMASK_ADDRESS)
@@ -458,11 +433,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Returns the `nextInitialized` flag set if `quantity` equals 1.
      */
-    function _nextInitializedFlag(uint256 quantity)
-        private
-        pure
-        returns (uint256 result)
-    {
+    function _nextInitializedFlag(
+        uint256 quantity
+    ) private pure returns (uint256 result) {
         // For branchless setting of the `nextInitialized` flag.
         assembly {
             // `(quantity == 1) << _BITPOS_NEXT_INITIALIZED`.
@@ -508,13 +481,9 @@ contract ERC721ACloneable is IERC721A {
      *
      * - `tokenId` must exist.
      */
-    function getApproved(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function getApproved(
+        uint256 tokenId
+    ) public view virtual override returns (address) {
         if (!_exists(tokenId)) revert ApprovalQueryForNonexistentToken();
 
         return _tokenApprovals[tokenId].value;
@@ -531,11 +500,10 @@ contract ERC721ACloneable is IERC721A {
      *
      * Emits an {ApprovalForAll} event.
      */
-    function setApprovalForAll(address operator, bool approved)
-        public
-        virtual
-        override
-    {
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public virtual override {
         _operatorApprovals[_msgSenderERC721A()][operator] = approved;
         emit ApprovalForAll(_msgSenderERC721A(), operator, approved);
     }
@@ -545,13 +513,10 @@ contract ERC721ACloneable is IERC721A {
      *
      * See {setApprovalForAll}.
      */
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -590,7 +555,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Returns the storage slot and value for the approved address of `tokenId`.
      */
-    function _getApprovedSlotAndAddress(uint256 tokenId)
+    function _getApprovedSlotAndAddress(
+        uint256 tokenId
+    )
         private
         view
         returns (uint256 approvedAddressSlot, address approvedAddress)
@@ -1187,12 +1154,9 @@ contract ERC721ACloneable is IERC721A {
     /**
      * @dev Converts a uint256 to its ASCII string decimal representation.
      */
-    function _toString(uint256 value)
-        internal
-        pure
-        virtual
-        returns (string memory str)
-    {
+    function _toString(
+        uint256 value
+    ) internal pure virtual returns (string memory str) {
         assembly {
             // The maximum value of a uint256 contains 78 digits (1 byte per digit), but
             // we allocate 0xa0 bytes to keep the free memory pointer 32-byte word aligned.
