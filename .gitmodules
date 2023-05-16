@@ -10,3 +10,6 @@
 	path = lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/Openzeppelin/openzeppelin-contracts-upgradeable
 	branch = v4.8.3
+[submodule "lib/royalty-registry-solidity"]
+	path = lib/royalty-registry-solidity
+	url = https://github.com/manifoldxyz/royalty-registry-solidity
