@@ -10,10 +10,11 @@ import {INetexTemplate} from "../interfaces/INetexTemplate.sol";
  * - NFT smart contract factory
  * -
  */
+contract NetexERC721Factory is Ownable {
 
-contract NetexFactory is Ownable {
     error NonexistentTemplate();
     error ZeroAddressTemplate();
+    error TemplateNotFound();
     error TemplateAlreadyExists();
 
     event ContractCreated(
@@ -27,19 +28,30 @@ contract NetexFactory is Ownable {
     mapping(address => bool) public templates;
 
     constructor(address _minter) {
-        minter = _minter;
+        _setMinter(_minter);
     }
 
-        /**
+    /**
      * @notice Function to add an contract template to create through factory.
      * @dev Send should be owner.
      * @param _template Contract template to create an contract.
      */
     function addTemplate(address _template) external onlyOwner {
-        if(_template == address(0)) revert ZeroAddressTemplate();
+        if(_template != address(0)) revert ZeroAddressTemplate();
         if(templates[_template]) revert TemplateAlreadyExists();
 
         templates[_template] = true;
+    }
+
+    /**
+     * @notice Function to add an contract template to create through factory.
+     * @dev Send should be owner.
+     * @param _template Contract template to create an contract.
+     */
+    function deleteTemplate(address _template) external onlyOwner {
+        if(!templates[_template]) revert TemplateNotFound();
+
+        templates[_template] = false;
     }
 
     /**
@@ -93,5 +105,13 @@ contract NetexFactory is Ownable {
             clone = Clones.cloneDeterministic(_template, cloneSalt);
         }
         INetexTemplate(clone).initialize(_name, _symbol, minter, msg.sender, _data);
+    }
+
+    function updateMinter(address _minter) external onlyOwner {
+        _setMinter(_minter);
+    }
+
+    function _setMinter(address _minter) internal {
+        minter = _minter;
     }
 }

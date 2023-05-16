@@ -3,20 +3,22 @@ pragma solidity 0.8.17;
 import "forge-std/console.sol";
 import {BaseTest} from "./BaseTest.t.sol";
 import {OrderTypes} from "../src/libraries/OrderTypes.sol";
-import {SigUtils} from "./utils/SigUtils.sol";
+import {ExchangeSigUtils} from "./utils/ExchangeSigUtils.sol";
+import {LazyMintSigUtils} from "./utils/LazyMintSigUtils.sol";
 import {MockERC721} from "./mocks/MockERC721.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract NetexExchangeTest is BaseTest {
-    SigUtils public sigUtils;
+    ExchangeSigUtils exchangeSigUtils;
+
     uint256 public constant MAX_UINT = type(uint256).max;
     mapping(address => uint256) userNonce;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         skip(1675079661);
         super.setUp();
-        sigUtils = new SigUtils(exchange.DOMAIN_SEPARATOR());
+        exchangeSigUtils = new ExchangeSigUtils(exchange.DOMAIN_SEPARATOR());
     }
 
     function testMatchAskWithTakerBidUsingETHAndWETH(
@@ -65,7 +67,7 @@ contract NetexExchangeTest is BaseTest {
 
         uint256 protocolFee = ((price * standartSaleForFixedPriceStrg.viewProtocolFee()) / 10000);
         uint256 feeRecipientBalanceBefore = weth.balanceOf(protocolFeeRecipient);
-        exchange.matchAskWithTakerBidUsingETHAndWETH{value: price}(takerBid, order);
+        exchange.matchAskWithTakerBidUsingETHAndWETH{value: price}(takerBid, order, "");
         console.logString("feeRecipientBalanceBefore:");
         console.logUint(feeRecipientBalanceBefore);
         console.logString("after");
@@ -161,7 +163,7 @@ contract NetexExchangeTest is BaseTest {
         });
         nft1.setApprovalForAll(address(transferManagerERC721), true);
 
-        exchange.matchBidWithTakerAsk(takerOrder, makerOrder);
+        exchange.matchBidWithTakerAsk(takerOrder, makerOrder, "");
 
         assert(nft1.ownerOf(1) == bob);
     }
@@ -226,9 +228,9 @@ contract NetexExchangeTest is BaseTest {
         });
 
         vm.expectRevert("Order: Matching order expired");
-        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order1);
+        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order1, "");
         vm.expectRevert("Order: Matching order expired");
-        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order2);
+        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order2, "");
     }
 
     function testCancelAllOrdersForSender() public {
@@ -288,9 +290,9 @@ contract NetexExchangeTest is BaseTest {
         });
 
         vm.expectRevert("Order: Matching order expired");
-        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order1);
+        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order1, "");
         vm.expectRevert("Order: Matching order expired");
-        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order2);
+        exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order2, "");
     }
 
     function createOrderForFixedPrice(
@@ -354,6 +356,8 @@ contract NetexExchangeTest is BaseTest {
             deadline
         );
 
+        // order.price = 1111111111;
+
         vm.stopPrank();
         vm.startPrank(taker);
 
@@ -376,7 +380,7 @@ contract NetexExchangeTest is BaseTest {
 
         uint256 protocolFee = ((price *
             standartSaleForFixedPriceStrg.viewProtocolFee()) / 10000);
-        exchange.matchAskWithTakerBid(takerBid, order);
+        exchange.matchAskWithTakerBid(takerBid, order, "");
         assert(IERC20(currency).balanceOf(protocolFeeRecipient) >= protocolFee);
         assert(nft.ownerOf(tokenId) == taker);
     }
@@ -385,7 +389,7 @@ contract NetexExchangeTest is BaseTest {
         OrderTypes.MakerOrder memory makerOrder,
         uint256 signerPK
     ) internal view returns (OrderTypes.MakerOrder memory) {
-        bytes32 digest = sigUtils.getTypedDataHash(makerOrder);
+        bytes32 digest = exchangeSigUtils.getTypedDataHash(makerOrder);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
 
         makerOrder.v = v;

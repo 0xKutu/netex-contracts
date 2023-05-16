@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import {ITransferManagerNFT} from "../interfaces/ITransferManagerNFT.sol";
+import {LibERC721LazyMint} from "../libraries/LibERC721LazyMint.sol";
 
 /**
  * @title TransferManagerERC1155
@@ -39,4 +40,17 @@ contract TransferManagerERC1155 is ITransferManagerNFT {
         // https://docs.openzeppelin.com/contracts/3.x/api/token/erc1155#IERC1155-safeTransferFrom-address-address-uint256-uint256-bytes-
         IERC1155(collection).safeTransferFrom(from, to, tokenId, amount, "");
     }
+
+    //TODO: rewrite 
+    function transferNonFungibleToken(
+        address collection,
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256,
+        bytes calldata data
+    ) external override {
+
+    }
+
 }

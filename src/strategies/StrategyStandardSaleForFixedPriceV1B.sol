@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {OrderTypes} from "../libraries/OrderTypes.sol";
 import {IExecutionStrategy} from "../interfaces/IExecutionStrategy.sol";
+import {LibERC721LazyMint} from "../libraries/LibERC721LazyMint.sol";
 
 /**
  * @title StrategyStandardSaleForFixedPriceV1B
@@ -23,16 +24,10 @@ contract StrategyStandardSaleForFixedPriceV1B is Ownable, IExecutionStrategy {
      * @param makerBid maker bid order
      * @return (whether strategy can be executed, tokenId to execute, amount of tokens to execute)
      */
-    function canExecuteTakerAsk(OrderTypes.TakerOrder calldata takerAsk, OrderTypes.MakerOrder calldata makerBid)
-        external
-        view
-        override
-        returns (
-            bool,
-            uint256,
-            uint256
-        )
-    {
+    function canExecuteTakerAsk(
+        OrderTypes.TakerOrder calldata takerAsk,
+        OrderTypes.MakerOrder calldata makerBid
+    ) external view override returns (bool, uint256, uint256) {
         return (
             ((makerBid.price == takerAsk.price) &&
                 (makerBid.tokenId == takerAsk.tokenId) &&
@@ -49,16 +44,10 @@ contract StrategyStandardSaleForFixedPriceV1B is Ownable, IExecutionStrategy {
      * @param makerAsk maker ask order
      * @return (whether strategy can be executed, tokenId to execute, amount of tokens to execute)
      */
-    function canExecuteTakerBid(OrderTypes.TakerOrder calldata takerBid, OrderTypes.MakerOrder calldata makerAsk)
-        external
-        view
-        override
-        returns (
-            bool,
-            uint256,
-            uint256
-        )
-    {
+    function canExecuteTakerBid(
+        OrderTypes.TakerOrder calldata takerBid,
+        OrderTypes.MakerOrder calldata makerAsk
+    ) external view override returns (bool, uint256, uint256) {
         return (
             ((makerAsk.price == takerBid.price) &&
                 (makerAsk.tokenId == takerBid.tokenId) &&

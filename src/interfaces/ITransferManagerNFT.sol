@@ -9,4 +9,13 @@ interface ITransferManagerNFT {
         uint256 tokenId,
         uint256 amount
     ) external;
+
+    function transferNonFungibleToken(
+        address collection,
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 amount,
+        bytes calldata data
+    ) external;
 }

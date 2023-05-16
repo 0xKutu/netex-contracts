@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 import {OrderTypes} from "../../src/libraries/OrderTypes.sol";
 
-contract SigUtils {
+contract ExchangeSigUtils {
     using OrderTypes for OrderTypes.MakerOrder;
 
     // keccak256("MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)")
