@@ -22,15 +22,26 @@ contract NetexExchangeTest is BaseTest {
     }
 
     function testMatchAskWithTakerBidUsingETHAndWETH(
-        uint256 price,
+        // uint256 price,
         uint256 deadline
     ) public {
         /// note Alice lists nft
         /// note Bob takes bid
-        vm.assume(price < 200 ether);
-        vm.assume(price > 1e5);
-        console.logString("price:");
-        console.logUint(price);
+        // vm.assume(price < 200 ether);
+        // vm.assume(price > 1e10);
+        uint price = 1e18;
+        vm.startPrank(deployer);
+
+        // uint256 eveBalanceBefore = weth.balanceOf(eve);
+        uint256 eveBalanceBefore = eve.balance;
+
+        royaltyFeeSetter.updateRoyaltyInfoForCollectionIfOwner(
+            address(nft1),
+            eve,
+            eve,
+            500
+        );
+        vm.stopPrank();
 
         vm.assume(deadline > block.timestamp);
         vm.startPrank(alice);
@@ -50,6 +61,7 @@ contract NetexExchangeTest is BaseTest {
             tokenId,
             price,
             startTime,
+            9000,
             deadline
         );
 
@@ -61,13 +73,21 @@ contract NetexExchangeTest is BaseTest {
             taker: bob,
             price: price,
             tokenId: tokenId,
-            minPercentageToAsk: 9000,
+            minPercentageToAsk: 9800,
             params: ""
         });
 
-        uint256 protocolFee = ((price * standartSaleForFixedPriceStrg.viewProtocolFee()) / 10000);
-        uint256 feeRecipientBalanceBefore = weth.balanceOf(protocolFeeRecipient);
-        exchange.matchAskWithTakerBidUsingETHAndWETH{value: price}(takerBid, order, "");
+        uint256 protocolFee = ((price *
+            standartSaleForFixedPriceStrg.viewProtocolFee()) / 10000);
+        uint256 feeRecipientBalanceBefore = protocolFeeRecipient.balance;
+        // uint256 feeRecipientBalanceBefore = weth.balanceOf(
+        //     protocolFeeRecipient
+        // );
+        exchange.matchAskWithTakerBidUsingETHAndWETH{value: price}(
+            takerBid,
+            order,
+            ""
+        );
         console.logString("feeRecipientBalanceBefore:");
         console.logUint(feeRecipientBalanceBefore);
         console.logString("after");
@@ -75,14 +95,23 @@ contract NetexExchangeTest is BaseTest {
         console.logString("protocolFee");
         console.logUint(protocolFee);
 
+        console.log("eveBalanceBefore:", eveBalanceBefore);
+        console.log("eveBalanceAfter:", eve.balance);
+        console.log("price:", price);
+        console.log("((price * 5) / 100):", ((price * 5) / 100));
         assert(
-            weth.balanceOf(protocolFeeRecipient) == feeRecipientBalanceBefore + protocolFee
+            protocolFeeRecipient.balance ==
+                feeRecipientBalanceBefore + protocolFee
         );
+        assert(eveBalanceBefore + ((price * 5) / 100) == eve.balance);
+        // assert(eveBalanceBefore + ((price * 5) / 100) == weth.balanceOf(eve));
+        // assert(1==2);
     }
 
-    function testMatchAskWithTakerBidWithWETH(uint256 price, uint256 deadline)
-        public
-    {
+    function testMatchAskWithTakerBidWithWETH(
+        uint256 price,
+        uint256 deadline
+    ) public {
         /// note Alice lists nft
         /// note Bob takes bid
         vm.assume(price < 50 ether);
@@ -102,9 +131,10 @@ contract NetexExchangeTest is BaseTest {
         );
     }
 
-    function testMatchAskWithTakerBidWithUSDT(uint256 price, uint256 deadline)
-        public
-    {
+    function testMatchAskWithTakerBidWithUSDT(
+        uint256 price,
+        uint256 deadline
+    ) public {
         /// note Alice lists nft
         /// note Bob takes bid
         vm.assume(price >= 100);
@@ -147,6 +177,7 @@ contract NetexExchangeTest is BaseTest {
             1,
             price,
             startTime,
+            9000,
             deadline
         );
 
@@ -190,6 +221,7 @@ contract NetexExchangeTest is BaseTest {
             1,
             price,
             startTime,
+            9000,
             deadline
         );
 
@@ -205,12 +237,18 @@ contract NetexExchangeTest is BaseTest {
             2,
             price,
             startTime,
+            9000,
             deadline
         );
 
         exchange.cancelMultipleMakerOrders(nonces);
 
-        assert(exchange.isUserOrderNonceExecutedOrCancelled(alice, userNonce[alice]-1));
+        assert(
+            exchange.isUserOrderNonceExecutedOrCancelled(
+                alice,
+                userNonce[alice] - 1
+            )
+        );
 
         vm.stopPrank();
         vm.startPrank(bob);
@@ -253,6 +291,7 @@ contract NetexExchangeTest is BaseTest {
             1,
             price,
             startTime,
+            9000,
             deadline
         );
 
@@ -267,6 +306,7 @@ contract NetexExchangeTest is BaseTest {
             2,
             price,
             startTime,
+            9000,
             deadline
         );
 
@@ -295,6 +335,24 @@ contract NetexExchangeTest is BaseTest {
         exchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, order2, "");
     }
 
+    function testFee() public {
+        vm.stopPrank();
+        vm.startPrank(deployer);
+        royaltyFeeSetter.updateRoyaltyInfoForCollectionIfOwner(
+            address(nft1),
+            deployer,
+            deployer,
+            200
+        );
+
+        (address receiver, uint256 fee) = royaltyFeeRegistry.royaltyInfo(
+            address(nft1),
+            1e18
+        );
+        assert(receiver == deployer);
+        assert(fee == (1e18 * 2) / 100);
+    }
+
     function createOrderForFixedPrice(
         bool isOrderAsk,
         address signer,
@@ -304,6 +362,7 @@ contract NetexExchangeTest is BaseTest {
         uint256 tokenId,
         uint256 price,
         uint256 startTime,
+        uint256 minPercentageToAsk,
         uint256 deadline
     ) internal returns (OrderTypes.MakerOrder memory) {
         OrderTypes.MakerOrder memory makerOrder = OrderTypes.MakerOrder({
@@ -318,7 +377,7 @@ contract NetexExchangeTest is BaseTest {
             nonce: userNonce[signer]++,
             startTime: startTime,
             endTime: deadline,
-            minPercentageToAsk: 9850,
+            minPercentageToAsk: minPercentageToAsk,
             params: "",
             v: 0,
             r: "",
@@ -353,6 +412,7 @@ contract NetexExchangeTest is BaseTest {
             tokenId,
             price,
             startTime,
+            9000,
             deadline
         );
 

@@ -8,6 +8,7 @@ import {CurrencyManager} from "../src/CurrencyManager.sol";
 import {ExecutionManager} from "../src/ExecutionManager.sol";
 import {RoyaltyFeeRegistry} from "../src/fee/RoyaltyFeeRegistry.sol";
 import {RoyaltyFeeManagerV1B} from "../src/RoyaltyFeeManagerV1B.sol";
+import {RoyaltyFeeSetter} from "../src/fee/RoyaltyFeeSetter.sol";
 import {TransferSelectorNFT} from "../src/TransferSelectorNFT.sol";
 import {NetexExchange} from "../src/NetexExchange.sol";
 import {TransferManagerERC721} from "../src/utils/TransferManagerERC721.sol";
@@ -34,6 +35,7 @@ contract BaseTest is Test {
     TransferManagerERC1155 public transferManagerERC1155;
     TransferSelectorNFT public transferSelectorNFT;
     FeeSharingSetter public feeSharingSetter;
+    RoyaltyFeeSetter public royaltyFeeSetter;
     NetexExchange public exchange;
     StrategyAnyItemFromCollectionForFixedPriceV1B
         public anyItemFromCollectionForFixedPriceStrg;
@@ -77,7 +79,7 @@ contract BaseTest is Test {
 
         vm.label(deployer, "deployer");
         vm.startPrank(deployer);
-        deal(deployer, 100 ether);
+        vm.deal(deployer, 100 ether);
 
         currencyManager = new CurrencyManager();
         executionManager = new ExecutionManager();
@@ -85,6 +87,8 @@ contract BaseTest is Test {
         royaltyFeeManager = new RoyaltyFeeManagerV1B(
             address(royaltyFeeRegistry)
         );
+        royaltyFeeSetter = new RoyaltyFeeSetter(address(royaltyFeeRegistry));
+        royaltyFeeRegistry.transferOwnership(address(royaltyFeeSetter));
         weth = new WETH();
         currencyManager.addCurrency(address(weth));
 

@@ -4,9 +4,9 @@ library LibERC721LazyMint {
 
     struct Mint721Data {
         uint256 tokenId;
-        string tokenURI;
         address creator;
-        uint256 royalty;
+        uint96 royalty;
+        string tokenURI;
         bytes signature;
     }
 

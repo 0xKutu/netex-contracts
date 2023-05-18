@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IERC1271} from "./IERC1271.sol";
 import {LibSignature} from "./libraries/LibSignature.sol";
 import {LibERC721LazyMint} from "../libraries/LibERC721LazyMint.sol";
+import {ERC2981} from "./erc2981/ERC2981.sol";
+import {ERC721Cloneable} from "./erc721/ERC721Cloneable.sol";
 
 import {console} from "forge-std/console.sol";
 
@@ -16,7 +18,8 @@ contract NetexERC721Collection is
     Ownable,
     ReentrancyGuard,
     // ReentrancyGuardUpgradeable,
-    EIP712
+    EIP712,
+    ERC2981
 {
     error MinterIsZeroAddress();
     error MaxSupplyReached();
@@ -39,14 +42,11 @@ contract NetexERC721Collection is
         bytes memory /* data */
     ) EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
         __ERC721Cloneable__init(__name, __symbol);
-        console.log("__ERC721Cloneable__init");
 
         // __ReentrancyGuard_init();
-        console.log("__ReentrancyGuard_init");
         _transferOwnership(_initialOwner);
         // _setMinter(_minter);
 
-        console.log("after transfer ownership");
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
@@ -56,8 +56,10 @@ contract NetexERC721Collection is
                 address(this)
             )
         );
+    }
 
-        console.log("done");
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Cloneable, ERC2981) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 
     // function configure(
@@ -119,10 +121,6 @@ contract NetexERC721Collection is
         address minter = address(uint160(data.tokenId >> 96));
         address sender = _msgSender();
 
-        console.log("minter:", minter);
-        console.log("data.creator:", data.creator);
-        console.log("sender:", sender);
-
         require(minter == data.creator, "tokenId incorrect");
         // require(data.creators.length == data.signatures.length);
         require(
@@ -144,8 +142,7 @@ contract NetexERC721Collection is
         }
 
         _safeMint(to, data.tokenId);
-        // _saveRoyalties(data.tokenId, data.royalties);
-        // _saveCreators(data.tokenId, data.creators);
+        _setTokenRoyalty(data.tokenId, data.creator, data.royalty);
         _setTokenURI(data.tokenId, data.tokenURI);
     }
 }

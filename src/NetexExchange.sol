@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -19,6 +20,7 @@ import {SignatureChecker} from "./libraries/SignatureChecker.sol";
 
 contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
+    using Address for address;
 
     using OrderTypes for OrderTypes.MakerOrder;
     using OrderTypes for OrderTypes.TakerOrder;
@@ -196,7 +198,7 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
             (makerAsk.isOrderAsk) && (!takerBid.isOrderAsk),
             "Order: Wrong sides"
         );
-        require(makerAsk.currency == WETH, "Order: Currency must be WETH");
+        // require(makerAsk.currency == WETH, "Order: Currency must be WETH");
         require(
             msg.sender == takerBid.taker,
             "Order: Taker must be the sender"
@@ -204,17 +206,17 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
 
         // If not enough ETH to cover the price, use WETH
         if (takerBid.price > msg.value) {
-            IERC20(WETH).safeTransferFrom(
-                msg.sender,
-                address(this),
-                (takerBid.price - msg.value)
-            );
+            // IERC20(WETH).safeTransferFrom(
+            //     msg.sender,
+            //     address(this),
+            //     (takerBid.price - msg.value)
+            // );
         } else {
             require(takerBid.price == msg.value, "Order: Msg.value too high");
         }
 
         // Wrap ETH sent to this contract
-        IWETH(WETH).deposit{value: msg.value}();
+        // IWETH(WETH).deposit{value: msg.value}();
 
         // Check the maker ask order
         bytes32 askHash = makerAsk.hash();
@@ -238,16 +240,6 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
         ] = true;
 
         // Execution part 1/2
-        _transferFeesAndFundsWithWETH(
-            makerAsk.strategy,
-            makerAsk.collection,
-            tokenId,
-            makerAsk.signer,
-            takerBid.price,
-            makerAsk.minPercentageToAsk
-        );
-
-        // Execution part 2/2
         _transferNonFungibleToken(
             makerAsk.collection,
             makerAsk.signer,
@@ -256,6 +248,17 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
             amount,
             data
         );
+
+        // Execution part 2/2
+        _transferFeesAndFundsWithETH(
+            makerAsk.strategy,
+            makerAsk.collection,
+            tokenId,
+            makerAsk.signer,
+            takerBid.price,
+            makerAsk.minPercentageToAsk
+        );
+
         emitTakerBid(takerBid, makerAsk, askHash, amount);
     }
 
@@ -300,6 +303,16 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
         ] = true;
 
         // Execution part 1/2
+        _transferNonFungibleToken(
+            makerAsk.collection,
+            makerAsk.signer,
+            takerBid.taker,
+            tokenId,
+            amount,
+            data
+        );
+
+        // Execution part 2/2
         _transferFeesAndFunds(
             makerAsk.strategy,
             makerAsk.collection,
@@ -309,16 +322,6 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
             makerAsk.signer,
             takerBid.price,
             makerAsk.minPercentageToAsk
-        );
-
-        // Execution part 2/2
-        _transferNonFungibleToken(
-            makerAsk.collection,
-            makerAsk.signer,
-            takerBid.taker,
-            tokenId,
-            amount,
-            data
         );
 
         emitTakerBid(takerBid, makerAsk, askHash, amount);
@@ -672,6 +675,84 @@ contract NetexExchange is INetexExchange, ReentrancyGuard, Ownable {
         // 3. Transfer final amount (post-fees) to seller
         {
             IERC20(WETH).safeTransfer(to, finalSellerAmount);
+        }
+    }
+
+    /**
+     * @notice Transfer fees and funds to royalty recipient, protocol, and seller
+     * @param strategy address of the execution strategy
+     * @param collection non fungible token address for the transfer
+     * @param tokenId tokenId
+     * @param to seller's recipient
+     * @param amount amount being transferred (in currency)
+     * @param minPercentageToAsk minimum percentage of the gross amount that goes to ask
+     */
+    function _transferFeesAndFundsWithETH(
+        address strategy,
+        address collection,
+        uint256 tokenId,
+        address to,
+        uint256 amount,
+        uint256 minPercentageToAsk
+    ) internal {
+        // Initialize the final amount that is transferred to seller
+        uint256 finalSellerAmount = amount;
+
+        // 1. Protocol fee
+        {
+            uint256 protocolFeeAmount = _calculateProtocolFee(strategy, amount);
+
+            // Check if the protocol fee is different than 0 for this strategy
+            if (
+                (protocolFeeRecipient != address(0)) && (protocolFeeAmount != 0)
+            ) {
+                Address.sendValue(
+                    payable(protocolFeeRecipient),
+                    protocolFeeAmount
+                );
+                finalSellerAmount -= protocolFeeAmount;
+            }
+        }
+
+        // 2. Royalty fee
+        {
+            (
+                address royaltyFeeRecipient,
+                uint256 royaltyFeeAmount
+            ) = royaltyFeeManager.calculateRoyaltyFeeAndGetRecipient(
+                    collection,
+                    tokenId,
+                    amount
+                );
+
+            // Check if there is a royalty fee and that it is different to 0
+            if (
+                (royaltyFeeRecipient != address(0)) && (royaltyFeeAmount != 0)
+            ) {
+                Address.sendValue(
+                    payable(royaltyFeeRecipient),
+                    royaltyFeeAmount
+                );
+                finalSellerAmount -= royaltyFeeAmount;
+
+                emit RoyaltyPayment(
+                    collection,
+                    tokenId,
+                    royaltyFeeRecipient,
+                    address(WETH),
+                    royaltyFeeAmount
+                );
+            }
+        }
+
+        require(
+            (finalSellerAmount * 10000) >= (minPercentageToAsk * amount),
+            "Fees: Higher than expected"
+        );
+
+        // 3. Transfer final amount (post-fees) to seller
+        {
+            Address.sendValue(payable(to), finalSellerAmount);
         }
     }
 

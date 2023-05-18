@@ -8,6 +8,11 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {LibERC721LazyMint} from "../src/libraries/LibERC721LazyMint.sol";
 import {NetexExchangeTest} from "./NetexExchangeTest.t.sol";
 import {OrderTypes} from "../src/libraries/OrderTypes.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 contract NetexERC721CollectionTest is NetexExchangeTest {
     NetexERC721Collection netexCollection;
@@ -49,6 +54,14 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
         vm.stopPrank();
     }
 
+    function testSupportsInterface() public view {
+        assert(netexCollection.supportsInterface(type(IERC721).interfaceId));
+        assert(netexCollection.supportsInterface(type(IERC721Metadata).interfaceId));
+        assert(netexCollection.supportsInterface(type(IERC165).interfaceId));
+        assert(netexCollection.supportsInterface(type(IERC2981).interfaceId));
+        assert(netexCollection.supportsInterface(type(IERC721Receiver).interfaceId) == false);
+    }
+
     function testListAndBuy(uint256 price, uint256 deadline) public {
         /// note Alice lists nft
         /// note Bob takes bid
@@ -75,6 +88,7 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
             tokenId,
             price,
             startTime,
+            8850,
             deadline
         );
 
@@ -86,7 +100,7 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
             taker: bob,
             price: price,
             tokenId: tokenId,
-            minPercentageToAsk: 9000,
+            minPercentageToAsk: 8850,
             params: ""
         });
 
@@ -95,6 +109,8 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
         uint256 feeRecipientBalanceBefore = weth.balanceOf(
             protocolFeeRecipient
         );
+        console.log('protocolFee:', protocolFee);
+        console.log('standartSaleForFixedPriceStrg.viewProtocolFee():', standartSaleForFixedPriceStrg.viewProtocolFee());
         LibERC721LazyMint.Mint721Data memory mintData = LibERC721LazyMint
             .Mint721Data({
                 tokenId: tokenId,

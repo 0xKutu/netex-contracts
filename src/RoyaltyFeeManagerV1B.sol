@@ -40,23 +40,48 @@ contract RoyaltyFeeManagerV1B is IRoyaltyFeeManager {
         uint256 amount
     ) external view override returns (address receiver, uint256 royaltyAmount) {
         // 1. Check if there is a royalty info in the system
-        (receiver, ) = royaltyFeeRegistry.royaltyInfo(collection, amount);
-
-        // 2. If the receiver is address(0), check if it supports the ERC2981 interface
-        if (receiver == address(0)) {
-            if (IERC2981(collection).supportsInterface(INTERFACE_ID_ERC2981)) {
-                (bool status, bytes memory data) = collection.staticcall(
-                    abi.encodeWithSelector(IERC2981.royaltyInfo.selector, tokenId, amount)
-                );
-                if (status) {
-                    (receiver, ) = abi.decode(data, (address, uint256));
-                }
+        if (IERC2981(collection).supportsInterface(INTERFACE_ID_ERC2981)) {
+            (bool status, bytes memory data) = collection.staticcall(
+                abi.encodeWithSelector(IERC2981.royaltyInfo.selector, tokenId, amount)
+            );
+            if (status) {
+                (receiver, royaltyAmount) = abi.decode(data, (address, uint256));
             }
         }
 
-        // A fixed royalty fee is applied
-        if (receiver != address(0)) {
-            royaltyAmount = (STANDARD_ROYALTY_FEE * amount) / 10000;
+        // 2. If the receiver is address(0), check if it supports the ERC2981 interface
+        if (receiver == address(0)) {
+            (receiver, royaltyAmount) = royaltyFeeRegistry.royaltyInfo(collection, amount);
         }
+
+        // A fixed royalty fee is applied
+        // if (receiver != address(0)) {
+        //     royaltyAmount = (STANDARD_ROYALTY_FEE * amount) / 10000;
+        // }
     }
+    // function calculateRoyaltyFeeAndGetRecipient(
+    //     address collection,
+    //     uint256 tokenId,
+    //     uint256 amount
+    // ) external view override returns (address receiver, uint256 royaltyAmount) {
+    //     // 1. Check if there is a royalty info in the system
+    //     (receiver, ) = royaltyFeeRegistry.royaltyInfo(collection, amount);
+
+    //     // 2. If the receiver is address(0), check if it supports the ERC2981 interface
+    //     if (receiver == address(0)) {
+    //         if (IERC2981(collection).supportsInterface(INTERFACE_ID_ERC2981)) {
+    //             (bool status, bytes memory data) = collection.staticcall(
+    //                 abi.encodeWithSelector(IERC2981.royaltyInfo.selector, tokenId, amount)
+    //             );
+    //             if (status) {
+    //                 (receiver, ) = abi.decode(data, (address, uint256));
+    //             }
+    //         }
+    //     }
+
+    //     // A fixed royalty fee is applied
+    //     if (receiver != address(0)) {
+    //         royaltyAmount = (STANDARD_ROYALTY_FEE * amount) / 10000;
+    //     }
+    // }
 }
