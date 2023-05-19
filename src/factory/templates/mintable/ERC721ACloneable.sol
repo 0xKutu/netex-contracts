@@ -4,7 +4,7 @@
 
 pragma solidity ^0.8.4;
 
-import { IERC721A } from "../../interfaces/IERC721A.sol";
+import { IERC721A } from "./IERC721A.sol";
 
 import { Initializable } from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 

@@ -24,6 +24,8 @@ contract ERC721Cloneable is Context, ERC165, IERC721, IERC721Metadata {
     // Token symbol
     string private _symbol;
 
+    bool private _initialized;
+
     // Mapping from token ID to owner address
     mapping(uint256 => address) private _owners;
 
@@ -40,8 +42,10 @@ contract ERC721Cloneable is Context, ERC165, IERC721, IERC721Metadata {
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
     function __ERC721Cloneable__init(string memory name_, string memory symbol_) internal {
+        require(!_initialized, "ERC721Cloneable: Already initialized");
         _name = name_;
         _symbol = symbol_;
+        _initialized = true;
     }
 
     /**

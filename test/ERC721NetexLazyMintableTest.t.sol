@@ -3,19 +3,19 @@ pragma solidity 0.8.17;
 import {console} from "forge-std/console.sol";
 
 import "./utils/LazyMintSigUtils.sol";
-import {NetexERC721Collection} from "../src/netex-collection/NetexERC721Collection.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {ERC721NetexLazyMintable} from "../src/factory/templates/lazy-mintable-template/ERC721NetexLazyMintable.sol";
 import {LibERC721LazyMint} from "../src/libraries/LibERC721LazyMint.sol";
 import {NetexExchangeTest} from "./NetexExchangeTest.t.sol";
 import {OrderTypes} from "../src/libraries/OrderTypes.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-contract NetexERC721CollectionTest is NetexExchangeTest {
-    NetexERC721Collection netexCollection;
+contract ERC721NetexLazyMintableTest is NetexExchangeTest {
+    ERC721NetexLazyMintable netexCollection;
     LazyMintSigUtils lazySigUtils;
 
     uint256 public collectionDeployerPK;
@@ -44,7 +44,8 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
         string memory symbol = "NETEX";
         address initialOwner = collectionDeployer;
 
-        netexCollection = new NetexERC721Collection(
+        netexCollection = new ERC721NetexLazyMintable();
+        netexCollection.__ERC721LazyTemplate_init(
             name,
             symbol,
             initialOwner,
@@ -56,10 +57,16 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
 
     function testSupportsInterface() public view {
         assert(netexCollection.supportsInterface(type(IERC721).interfaceId));
-        assert(netexCollection.supportsInterface(type(IERC721Metadata).interfaceId));
+        assert(
+            netexCollection.supportsInterface(type(IERC721Metadata).interfaceId)
+        );
         assert(netexCollection.supportsInterface(type(IERC165).interfaceId));
         assert(netexCollection.supportsInterface(type(IERC2981).interfaceId));
-        assert(netexCollection.supportsInterface(type(IERC721Receiver).interfaceId) == false);
+        assert(
+            netexCollection.supportsInterface(
+                type(IERC721Receiver).interfaceId
+            ) == false
+        );
     }
 
     function testListAndBuy(uint256 price, uint256 deadline) public {
@@ -109,8 +116,11 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
         uint256 feeRecipientBalanceBefore = weth.balanceOf(
             protocolFeeRecipient
         );
-        console.log('protocolFee:', protocolFee);
-        console.log('standartSaleForFixedPriceStrg.viewProtocolFee():', standartSaleForFixedPriceStrg.viewProtocolFee());
+        console.log("protocolFee:", protocolFee);
+        console.log(
+            "standartSaleForFixedPriceStrg.viewProtocolFee():",
+            standartSaleForFixedPriceStrg.viewProtocolFee()
+        );
         LibERC721LazyMint.Mint721Data memory mintData = LibERC721LazyMint
             .Mint721Data({
                 tokenId: tokenId,
@@ -126,11 +136,7 @@ contract NetexERC721CollectionTest is NetexExchangeTest {
 
         bytes memory data = abi.encode(mintData);
 
-        exchange.matchAskWithTakerBid(
-            takerBid,
-            order,
-            data
-        );
+        exchange.matchAskWithTakerBid(takerBid, order, data);
         console.logString("feeRecipientBalanceBefore:");
         console.logUint(feeRecipientBalanceBefore);
         console.logString("after");

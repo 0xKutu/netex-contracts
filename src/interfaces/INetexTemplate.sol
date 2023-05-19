@@ -1,5 +1,6 @@
 pragma solidity 0.8.17;
 
+// TODO: renmae to INetexNFTTemplate
 interface INetexTemplate {
     function initialize(
         string memory name,

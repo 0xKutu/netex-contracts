@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
-import {console} from "forge-std/console.sol";
 
+// TODO: combine this library with SignatureChecker
 library LibSignature {
    
     /**
@@ -23,16 +23,11 @@ library LibSignature {
     ) internal view returns (bool) {
         // \x19\x01 is the standardized encoding prefix
         // https://eips.ethereum.org/EIPS/eip-712#specification
-        console.log("hash"); 
-        console.logBytes32(hash); // 0xe3569863c43bebe33c926f35d001e3a5cc87b29ddc0db1a8e4e2d53aafa24b61
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, hash));
-        console.logBytes32(digest); // 0xc8a62d924b5df28dc0b7e136afb010d47cd87c2228f8e8e2fb96115892648dbb
         if (Address.isContract(signer)) {
             // 0x1626ba7e is the interfaceId for signature contracts (see IERC1271)
             return IERC1271(signer).isValidSignature(digest, signature) == 0x1626ba7e;
         } else {
-            console.log('signer:', recover(digest, signature));
-            console.log('recover(digest, signature):', recover(digest, signature));
             return recover(digest, signature) == signer;
         }
     }
