@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "ethers-eip712": "^0.2.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
+    "hardhat": "^2.14.0"
   }
 }
