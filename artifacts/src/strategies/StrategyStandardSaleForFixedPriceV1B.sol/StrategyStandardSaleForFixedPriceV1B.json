@@ -1,0 +1,398 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "StrategyStandardSaleForFixedPriceV1B",
+  "sourceName": "src/strategies/StrategyStandardSaleForFixedPriceV1B.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "protocolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewProtocolFee",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "isOrderAsk",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "taker",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPercentageToAsk",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "params",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct OrderTypes.TakerOrder",
+          "name": "takerAsk",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "isOrderAsk",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "signer",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "collection",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "currency",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "endTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPercentageToAsk",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "params",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct OrderTypes.MakerOrder",
+          "name": "makerBid",
+          "type": "tuple"
+        }
+      ],
+      "name": "canExecuteTakerAsk",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "isOrderAsk",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "taker",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPercentageToAsk",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "params",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct OrderTypes.TakerOrder",
+          "name": "takerBid",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "isOrderAsk",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "signer",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "collection",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "currency",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "endTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPercentageToAsk",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "params",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct OrderTypes.MakerOrder",
+          "name": "makerAsk",
+          "type": "tuple"
+        }
+      ],
+      "name": "canExecuteTakerBid",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newProtocolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setProtocolFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "viewProtocolFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052609660015534801561001557600080fd5b5061001f33610024565b610074565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b61045f806100836000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c80638da5cb5b1161005b5780638da5cb5b146100d45780639dd1cda6146100ef578063ad2390ac1461009f578063f2fde38b1461010057600080fd5b8063715018a614610082578063787dce3d1461008c578063865781ca1461009f575b600080fd5b61008a610113565b005b61008a61009a36600461036c565b610127565b6100b26100ad366004610385565b6101c0565b6040805193151584526020840192909252908201526060015b60405180910390f35b6000546040516001600160a01b0390911681526020016100cb565b6001546040519081526020016100cb565b61008a61010e3660046103f9565b61021a565b61011b6102aa565b6101256000610304565b565b61012f6102aa565b60015481106101855760405162461bcd60e51b815260206004820152601c60248201527f4f776e65723a2050726f746f636f6c2066656520746f6f20686967680000000060448201526064015b60405180910390fd5b60018190556040518181527f3e1c6f794380f768303ee10adb978482d0ee037b0517bdabf3118141632078a69060200160405180910390a150565b6000806000846040013584606001351480156101e3575084606001358460800135145b80156101f457504284610120013511155b801561020557504284610140013510155b92505050608082013560a08301359250925092565b6102226102aa565b6001600160a01b03811661029e5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201527f6464726573730000000000000000000000000000000000000000000000000000606482015260840161017c565b6102a781610304565b50565b6000546001600160a01b031633146101255760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015260640161017c565b600080546001600160a01b038381167fffffffffffffffffffffffff0000000000000000000000000000000000000000831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b60006020828403121561037e57600080fd5b5035919050565b6000806040838503121561039857600080fd5b823567ffffffffffffffff808211156103b057600080fd5b9084019060c082870312156103c457600080fd5b909250602084013590808211156103da57600080fd5b50830161020081860312156103ee57600080fd5b809150509250929050565b60006020828403121561040b57600080fd5b81356001600160a01b038116811461042257600080fd5b939250505056fea2646970667358221220eee3db8461147d6cb0538a1c35e549e9270d8319b2c68cad89619e50131b3a7164736f6c63430008110033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061007d5760003560e01c80638da5cb5b1161005b5780638da5cb5b146100d45780639dd1cda6146100ef578063ad2390ac1461009f578063f2fde38b1461010057600080fd5b8063715018a614610082578063787dce3d1461008c578063865781ca1461009f575b600080fd5b61008a610113565b005b61008a61009a36600461036c565b610127565b6100b26100ad366004610385565b6101c0565b6040805193151584526020840192909252908201526060015b60405180910390f35b6000546040516001600160a01b0390911681526020016100cb565b6001546040519081526020016100cb565b61008a61010e3660046103f9565b61021a565b61011b6102aa565b6101256000610304565b565b61012f6102aa565b60015481106101855760405162461bcd60e51b815260206004820152601c60248201527f4f776e65723a2050726f746f636f6c2066656520746f6f20686967680000000060448201526064015b60405180910390fd5b60018190556040518181527f3e1c6f794380f768303ee10adb978482d0ee037b0517bdabf3118141632078a69060200160405180910390a150565b6000806000846040013584606001351480156101e3575084606001358460800135145b80156101f457504284610120013511155b801561020557504284610140013510155b92505050608082013560a08301359250925092565b6102226102aa565b6001600160a01b03811661029e5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201527f6464726573730000000000000000000000000000000000000000000000000000606482015260840161017c565b6102a781610304565b50565b6000546001600160a01b031633146101255760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015260640161017c565b600080546001600160a01b038381167fffffffffffffffffffffffff0000000000000000000000000000000000000000831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b60006020828403121561037e57600080fd5b5035919050565b6000806040838503121561039857600080fd5b823567ffffffffffffffff808211156103b057600080fd5b9084019060c082870312156103c457600080fd5b909250602084013590808211156103da57600080fd5b50830161020081860312156103ee57600080fd5b809150509250929050565b60006020828403121561040b57600080fd5b81356001600160a01b038116811461042257600080fd5b939250505056fea2646970667358221220eee3db8461147d6cb0538a1c35e549e9270d8319b2c68cad89619e50131b3a7164736f6c63430008110033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
